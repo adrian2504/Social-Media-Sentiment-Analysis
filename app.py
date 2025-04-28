@@ -1,39 +1,48 @@
-import json, pickle, pandas as pd
+
+import os
+os.environ["TRANSFORMERS_NO_TF_IMPORT"] = "1"
+
+import json, pickle
 from flask import Flask, render_template, request, jsonify
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
 from transformers import pipeline
+import keras                                
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# ----- Models ----------------------------------------------------
-sentiment_pipe = pipeline(
-    "sentiment-analysis",
-    model="cardiffnlp/twitter-roberta-base-sentiment",
-    truncation=True
-)
-
+# ── LSTM next-word model
+lstm = keras.saving.load_model("models/lstm_nextword.keras")
 tok = pickle.load(open("models/tokenizer.pkl", "rb"))
-lstm = load_model("models/lstm_nextword.h5")
 max_len = lstm.input_shape[1]
 
-# ----- Inference helpers ----------------------------------------
-def predict_sentiment(text: str):
-    out = sentiment_pipe(text)[0]
-    label, score = out["label"], out["score"]
-    mood = {
-        "positive": "😊",
-        "neutral":  "😐",
-        "negative": "😞"
-    }.get(label.split()[0].lower(), "🤔")
-    return label, score, mood
-
-def next_words(seed: str, n: int = 10):
+def next_words(seed: str, n: int = 10) -> str:
+    """Generate `n` new words after the `seed` phrase."""
     for _ in range(n):
-        seq = pad_sequences([tok.texts_to_sequences([seed])[0]], maxlen=max_len-1)
+        seq = pad_sequences(
+            [tok.texts_to_sequences([seed])[0]], maxlen=max_len - 1
+        )
         wid = lstm.predict(seq, verbose=0).argmax()
         seed += " " + tok.index_word.get(wid, "")
     return seed
 
-# ----- Flask -----------------------------------------------------
+# ── BERT sentiment pipeline (PyTorch) 
+sentiment_pipe = pipeline(
+    "sentiment-analysis",
+    model="cardiffnlp/twitter-roberta-base-sentiment",
+    framework="pt"                    # force PyTorch backend
+)
+
+def predict_sentiment(text: str):
+    out = sentiment_pipe(text, truncation=True)[0]
+    raw_label, score = out["label"], out["score"]
+
+    # map RoBERTa’s LABEL_0/1/2 → human-readable
+    pretty = {"LABEL_0": "negative",
+              "LABEL_1": "neutral",
+              "LABEL_2": "positive"}.get(raw_label, raw_label)
+
+    mood = {"positive": "😊", "neutral": "😐", "negative": "😞"}.get(pretty, "🤔")
+    return pretty, score, mood
+
+# ── Flask setup ──────────────────────────────────────────────────
 app = Flask(__name__)
 
 @app.route("/")
@@ -51,5 +60,6 @@ def api_generate():
     seed = request.json.get("seed", "")
     return jsonify({"generated": next_words(seed)})
 
+# ── main ─────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(debug=True)

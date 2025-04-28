@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dataset Sentiment Distribution</h2>
+<canvas id="sentChart" height="120"></canvas>
+
+<h3>Live Post Mood</h3>
+<input id="postTxt" placeholder="Type a post…">
+<button onclick="checkSent()">Analyze</button>
+<p id="mood"></p>
+
+<h3>Next-Word Generator</h3>
+<input id="seedTxt" placeholder="Seed text…">
+<button onclick="genText()">Generate</button>
+<p id="genOut"></p>
+{% endblock %}

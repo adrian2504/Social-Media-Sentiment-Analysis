@@ -1,12 +1,20 @@
 import pickle, pandas as pd, numpy as np
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.utils import to_categorical
-from keras.models import Sequential
-from keras.layers import Embedding, LSTM, Dense
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, LSTM, Dense
 
+# ---------- load data & find the text column --------------------
 df = pd.read_csv("data/sentimentdataset.csv")
-corpus = df["text"].astype(str).tolist()
+
+# try common names; fall back to first string column
+candidates = ["text", "tweet", "content", "message", "post", "body", "comment"]
+text_col = next((c for c in candidates if c in df.columns), None)
+if text_col is None:
+    text_col = df.select_dtypes(include="object").columns[0]
+
+corpus = df[text_col].astype(str).tolist()
 
 tok = Tokenizer()
 tok.fit_on_texts(corpus)
@@ -27,5 +35,5 @@ model = Sequential([
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 model.fit(X, y, epochs=20, batch_size=256)
 
-model.save("models/lstm_nextword.h5")
+model.save("models/lstm_nextword.keras")            # new format
 pickle.dump(tok, open("models/tokenizer.pkl", "wb"))
