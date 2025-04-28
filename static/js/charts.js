@@ -44,3 +44,16 @@ async function genText() {
   const j = await res.json();
   document.getElementById("genOut").innerText = j.generated;
 }
+
+// ─── caption generator ────────────────────────────────────────
+async function genCaption() {
+  const keywords = document.getElementById("keywordsTxt").value;
+  const res = await fetch("/api/caption", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ keywords })
+  });
+  if (!res.ok) { alert("API error"); return; }
+  const j = await res.json();
+  document.getElementById("captionOut").innerText = j.caption;
+}
