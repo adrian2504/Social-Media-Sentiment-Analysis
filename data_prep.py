@@ -1,13 +1,8 @@
-"""
-Build static/data/distribution.json for the dashboard bar-chart.
-Automatically finds the sentiment-label column, whatever it’s called.
-"""
-
 import json, pandas as pd, pathlib, sys
 
 df = pd.read_csv("data/sentimentdataset.csv")
 
-# ----- find the sentiment column ---------------------------------
+#sentiment
 candidates = ["sentiment", "label", "polarity", "target", "category"]
 sent_col = next((c for c in candidates if c in df.columns), None)
 if sent_col is None:                      # fall-back: first non-numeric column
@@ -18,7 +13,6 @@ if sent_col is None:                      # fall-back: first non-numeric column
 
 vc = df[sent_col].value_counts()
 
-# ensure output dir exists
 pathlib.Path("static/data").mkdir(parents=True, exist_ok=True)
 
 json.dump(

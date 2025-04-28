@@ -5,7 +5,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, LSTM, Dense
 
-# ---------- load data & find the text column --------------------
+
 df = pd.read_csv("data/sentimentdataset.csv")
 
 # try common names; fall back to first string column

@@ -43,22 +43,51 @@ def predict_sentiment(text: str):
     return pretty, score, mood
 
 # ── Flask setup ──────────────────────────────────────────────────
+# ── Flask setup ──────────────────────────────────────────────────
 app = Flask(__name__)
 
 @app.route("/")
-def home():
-    return render_template("dashboard.html")
+def root():                         #  ← default = Overview page
+    return render_template("overview.html")
 
+@app.route("/overview")
+def overview():
+    return render_template("overview.html")
+
+@app.route("/charts")
+def charts():
+    return render_template("charts.html")
+
+@app.route("/sentiment")
+def sentiment():
+    return render_template("sentiment.html")   # old Live-Mood UI
+
+# ── REST API endpoints ────────────────────────────────────────────
 @app.route("/api/sentiment", methods=["POST"])
 def api_sentiment():
-    txt = request.json.get("text", "")
-    label, score, mood = predict_sentiment(txt)
+    """
+    JSON-in  : { "text": "<user post>" }
+    JSON-out : { "label": "positive|neutral|negative",
+                 "score": 0.97,
+                 "emoji": "😊" }
+    """
+    data = request.get_json(silent=True) or {}
+    text  = data.get("text", "")
+    label, score, mood = predict_sentiment(text)
     return jsonify({"label": label, "score": score, "emoji": mood})
+
 
 @app.route("/api/generate", methods=["POST"])
 def api_generate():
-    seed = request.json.get("seed", "")
+    """
+    JSON-in  : { "seed": "hello world" }
+    JSON-out : { "generated": "hello world …" }
+    """
+    data = request.get_json(silent=True) or {}
+    seed = data.get("seed", "")
     return jsonify({"generated": next_words(seed)})
+
+
 
 # ── main ─────────────────────────────────────────────────────────
 if __name__ == "__main__":

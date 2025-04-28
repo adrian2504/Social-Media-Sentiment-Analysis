@@ -9,3 +9,21 @@ body { margin:0; font-family:system-ui, sans-serif; }
 #sidebar.collapsed ~ #content { margin-left:60px; }
 input { padding:6px; margin-right:4px; }
 button { padding:6px 12px; cursor:pointer; }
+.mood-display {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;   /* centre on page */
+    align-items: center;
+    gap: 14px;
+  }
+  
+  .mood-display .emoji {
+    font-size: 72px;            /* giant emoji */
+    line-height: 1;
+  }
+  
+  .mood-display .label {
+    font-size: 28px;            /* big text */
+    font-weight: 600;
+  }
+  

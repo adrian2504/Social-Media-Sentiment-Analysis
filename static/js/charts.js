@@ -1,18 +1,22 @@
+// sidebar toggle – unchanged
 document.getElementById("toggle").onclick =
   () => document.getElementById("sidebar").classList.toggle("collapsed");
 
-// initial bar chart
-fetch("/static/data/distribution.json")
-  .then(r => r.json())
-  .then(d => {
-    new Chart(
-      document.getElementById("sentChart"),
-      { type: "bar",
-        data: { labels: d.labels,
-                datasets: [{ data: d.counts }] } });
-  });
+// ─── build chart only if we're on the Charts page ────────────────
+const canvas = document.getElementById("sentChart");
+if (canvas) {
+  fetch("/static/data/distribution.json")
+    .then(r => r.json())
+    .then(d => {
+      new Chart(canvas, {
+        type: "bar",
+        data: { labels: d.labels, datasets: [{ data: d.counts }] }
+      });
+    })
+    .catch(err => console.error("Chart load error:", err));
+}
 
-// live sentiment
+// ─── live sentiment (Sentiment Analysis page) ───────────────────
 async function checkSent() {
   const txt = document.getElementById("postTxt").value;
   const res = await fetch("/api/sentiment", {
@@ -20,12 +24,15 @@ async function checkSent() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text: txt })
   });
+  if (!res.ok) { alert("API error"); return; }
   const j = await res.json();
-  document.getElementById("mood").innerText =
-  `${j.emoji}  ${j.label} (${(j.score*100).toFixed(1)}%)`;
+  document.getElementById("mood").innerHTML =
+  `<span class="emoji">${j.emoji}</span>
+   <span class="label">${j.label.toUpperCase()} ${(j.score*100).toFixed(1)}%</span>`;
+
 }
 
-// next-word generator
+// ─── next-word generator ────────────────────────────────────────
 async function genText() {
   const seed = document.getElementById("seedTxt").value;
   const res = await fetch("/api/generate", {
@@ -33,6 +40,7 @@ async function genText() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ seed })
   });
+  if (!res.ok) { alert("API error"); return; }
   const j = await res.json();
   document.getElementById("genOut").innerText = j.generated;
 }

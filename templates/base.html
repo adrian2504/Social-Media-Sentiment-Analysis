@@ -9,17 +9,19 @@
 
 </head>
 <body>
+    {% block scripts %}{% endblock %}
+
   <div id="sidebar">
     <button id="toggle">☰</button>
     <ul>
-      <li><a href="#">Overview</a></li>
-      <li><a href="#">Live Sentiment</a></li>
-      <li><a href="#">Generator</a></li>
+        <li><a href="{{ url_for('overview')  }}">Overview</a></li>
+        <li><a href="{{ url_for('charts')    }}">Charts & Analysis</a></li>
+        <li><a href="{{ url_for('sentiment') }}">Sentiment Analysis</a></li>
     </ul>
+        
   </div>
 
   <div id="content">{% block content %}{% endblock %}</div>
 
-  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 </body>
 </html>
